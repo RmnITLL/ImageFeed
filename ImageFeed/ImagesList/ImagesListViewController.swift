@@ -22,6 +22,8 @@ final class ImagesListViewController: UIViewController {
         return formatter
     }()
 
+    private let showSingleImageSequeIdentifier = "ShowSingleImage"
+
     // MARK: life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,6 +31,24 @@ final class ImagesListViewController: UIViewController {
         tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
 
+    }
+
+    // MARK: override methods
+    override func prepare(for seque: UIStoryboardSegue, sender: Any?) {
+        if seque.identifier == showSingleImageSequeIdentifier {
+            guard
+                let viewController = seque.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
+            else {
+                assertionFailure("Invalid seque destination")
+                return
+            }
+
+            let image = UIImage(named: photosName[indexPath.row])
+            viewController.image = image
+        } else {
+            super.prepare(for: seque, sender: sender)
+        }
     }
 }
 
@@ -56,7 +76,6 @@ extension ImagesListViewController: UITableViewDataSource {
 
 extension ImagesListViewController {
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-
         guard let image = UIImage(named: photosName[indexPath.row]) else {
             return
         }
@@ -72,11 +91,11 @@ extension ImagesListViewController {
 }
 
 extension ImagesListViewController: UITableViewDelegate {
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {}
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "ShowSingleImage", sender: indexPath)
+    }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-
         guard let image = UIImage(named: photosName[indexPath.row]) else {
             return 0
         }
