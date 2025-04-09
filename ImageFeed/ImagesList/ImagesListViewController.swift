@@ -9,11 +9,13 @@ import UIKit
 
 final class ImagesListViewController: UIViewController {
 
-    // MARK: IBOutlet
+    // MARK: - IBOutlet
     @IBOutlet private var tableView: UITableView!
 
-    // MARK: private properties
+    // MARK: - Private properties
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+    private let showSingleImageSequeIdentifier = "ShowSingleImage"
+    private let currentDate = Date()
 
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -22,18 +24,16 @@ final class ImagesListViewController: UIViewController {
         return formatter
     }()
 
-    private let showSingleImageSequeIdentifier = "ShowSingleImage"
-
-    // MARK: life cycle
+    // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.rowHeight = 200
+       // tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
 
     }
 
-    // MARK: override methods
+    // MARK: - Override methods
     override func prepare(for seque: UIStoryboardSegue, sender: Any?) {
         if seque.identifier == showSingleImageSequeIdentifier {
             guard
@@ -50,9 +50,14 @@ final class ImagesListViewController: UIViewController {
             super.prepare(for: seque, sender: sender)
         }
     }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+
 }
 
-    // MARK: Extensions
+    // MARK: - Extensions
 
 extension ImagesListViewController: UITableViewDataSource {
 
@@ -61,16 +66,12 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath)
-
-        guard let imageListCell = cell as? ImagesListCell else {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath) as? ImagesListCell else {
             return UITableViewCell()
         }
-
-        configCell(for: imageListCell, with: indexPath)
-
-        return imageListCell
+        configCell(for: cell, with: indexPath)
+        return cell
     }
 }
 
