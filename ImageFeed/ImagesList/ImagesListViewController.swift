@@ -9,11 +9,13 @@ import UIKit
 
 final class ImagesListViewController: UIViewController {
 
-    // MARK: IBOutlet
+    // MARK: - IBOutlet
     @IBOutlet private var tableView: UITableView!
 
-    // MARK: private properties
+    // MARK: - Private properties
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+    private let showSingleImageSequeIdentifier = "ShowSingleImage"
+    private let currentDate = Date()
 
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -22,17 +24,40 @@ final class ImagesListViewController: UIViewController {
         return formatter
     }()
 
-    // MARK: life cycle
+    // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.rowHeight = 200
+       // tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
 
     }
+
+    // MARK: - Override methods
+    override func prepare(for seque: UIStoryboardSegue, sender: Any?) {
+        if seque.identifier == showSingleImageSequeIdentifier {
+            guard
+                let viewController = seque.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
+            else {
+                assertionFailure("Invalid seque destination")
+                return
+            }
+
+            let image = UIImage(named: photosName[indexPath.row])
+            viewController.image = image
+        } else {
+            super.prepare(for: seque, sender: sender)
+        }
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+
 }
 
-    // MARK: Extensions
+    // MARK: - Extensions
 
 extension ImagesListViewController: UITableViewDataSource {
 
@@ -41,22 +66,17 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath)
-
-        guard let imageListCell = cell as? ImagesListCell else {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath) as? ImagesListCell else {
             return UITableViewCell()
         }
-
-        configCell(for: imageListCell, with: indexPath)
-
-        return imageListCell
+        configCell(for: cell, with: indexPath)
+        return cell
     }
 }
 
 extension ImagesListViewController {
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-
         guard let image = UIImage(named: photosName[indexPath.row]) else {
             return
         }
@@ -72,11 +92,11 @@ extension ImagesListViewController {
 }
 
 extension ImagesListViewController: UITableViewDelegate {
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {}
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "ShowSingleImage", sender: indexPath)
+    }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-
         guard let image = UIImage(named: photosName[indexPath.row]) else {
             return 0
         }
