@@ -10,7 +10,6 @@ import UIKit
 final class ProfileViewController: UIViewController {
 
     // MARK: - properties
-
     private var avatarImageView = UIImageView()
     private var nameLabel = UILabel()
     private var loginNameLabel = UILabel()
@@ -18,14 +17,13 @@ final class ProfileViewController: UIViewController {
     private var logoutButton = UIButton()
 
 
-    // MARK: Lifecycle
+    // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         userProfile()
     }
 
     // MARK: - Methods
-
     private func userProfile() {
         avatarProfile()
         nameLabelProfile()
@@ -55,7 +53,6 @@ final class ProfileViewController: UIViewController {
                 constant: 16
             ).isActive = true
         self.avatarImageView = avatarImageView
-
     }
 
     private func nameLabelProfile() {
