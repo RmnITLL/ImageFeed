@@ -19,7 +19,6 @@ final class AuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-       // configureBackButton()
         navigationItem.hidesBackButton = true
     }
 

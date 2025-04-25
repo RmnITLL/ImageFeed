@@ -52,7 +52,11 @@ final class WebViewViewController: UIViewController, WKUIDelegate {
             context: nil)
     }
     
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey : Any]?,
+        context: UnsafeMutableRawPointer?) {
         if keyPath == #keyPath(WKWebView.estimatedProgress) {
             updateProgress()
         } else {
@@ -61,7 +65,10 @@ final class WebViewViewController: UIViewController, WKUIDelegate {
     }
     
     private func loadWebView(){
-        guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else { return }
+        guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
+            print("ERROR: Error couldn't create URL Components from string \(WebViewConstants.unsplashAuthorizeURLString)")
+            return
+        }
         
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: Constants.accessKey),
@@ -69,12 +76,14 @@ final class WebViewViewController: UIViewController, WKUIDelegate {
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "scope", value: Constants.accessScope)
         ]
-        guard let url = urlComponents.url else { return }
+        guard let url = urlComponents.url else {
+            print("ERROR: Error couldn't get URL from URL Components: \(urlComponents)")
+            return
+        }
         
         let request = URLRequest(url: url)
         webView.load(request)
     }
-    
     
     //MARK: - Private Method
     private func updateProgress() {

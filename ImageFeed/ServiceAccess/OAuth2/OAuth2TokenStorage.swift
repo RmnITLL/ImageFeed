@@ -2,7 +2,7 @@
 //  OAuth2TokenStorage.swift
 //  ImageFeed
 //
-//  Created by R Kolos on 23.04.2025.
+//  Created by R Kolos on 16.04.2025.
 //
 
 import Foundation

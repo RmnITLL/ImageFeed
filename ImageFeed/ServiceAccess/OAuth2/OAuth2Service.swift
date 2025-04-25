@@ -2,17 +2,20 @@
 //  OAuth2Service.swift
 //  ImageFeed
 //
-//  Created by R Kolos on 23.04.2025.
+//  Created by R Kolos on 16.04.2025.
 //
 
 import Foundation
 
 final class OAuth2Service {
     //MARK: - Static properties
-    static let shared = OAuth2Service ()
+    static let shared = OAuth2Service()
 
     //MARK: - Private properties
     private let oAuth2TokenStorage = OAuth2TokenStorage.storage
+    
+    //MARK: - Init
+    private init(){ }
 
     //MARK:  - Private methods
     func makeOAuthTokenRequest(code: String) -> Result<URLRequest, OAuthTokenRequestError> {
@@ -69,9 +72,6 @@ final class OAuth2Service {
                 completion(.failure(error))
         }
     }
-
-    //MARK: - Init
-    private init(){ }
 }
 
 // MARK: - Extension
