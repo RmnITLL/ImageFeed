@@ -34,4 +34,3 @@ final class ImagesListCell: UITableViewCell {
         dateLabel.textColor = UIColor(named: "YP White")
     }
 }
-

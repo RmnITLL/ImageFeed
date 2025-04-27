@@ -10,7 +10,7 @@ import UIKit
 final class SingleImageViewController: UIViewController {
 
     // MARK: - Properties
-    var image: UIImage? {
+    var image: UIImage! {
         didSet {
             guard isViewLoaded, let image else { return }
 
