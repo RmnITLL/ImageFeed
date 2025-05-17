@@ -8,70 +8,108 @@
 import UIKit
 
 final class SingleImageViewController: UIViewController {
-
     // MARK: - Properties
-    var image: UIImage! {
+    var image: UIImage? {
         didSet {
-            guard isViewLoaded, let image else { return }
-
-            imageView.image = image
-            imageView.frame.size = image.size
-            rescaleAndCenterImageInScrollView(image: image)
+            guard isViewLoaded, let image = image else { return }
+            updateImage(image)
         }
     }
+    
+    private lazy var imageView: UIImageView = {
+        let image = UIImageView()
+        image.contentMode = .scaleAspectFill
+        image.clipsToBounds = true
+        image.translatesAutoresizingMaskIntoConstraints = false
+        return image
+    }()
+    
+    private lazy var scrollView: UIScrollView = {
+        let scroll = UIScrollView()
 
-    private var initialZoomScale = 1.0
-
-    // MARK: - IBOutlets
-    @IBOutlet private var scrollView: UIScrollView!
-    @IBOutlet private var imageView: UIImageView!
-    @IBOutlet weak var shareButton: UIButton!
+        scroll.delegate = self
+        scroll.showsVerticalScrollIndicator = false
+        scroll.showsHorizontalScrollIndicator = false
+        scroll.minimumZoomScale = 1.0
+        scroll.maximumZoomScale = 3.0
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        return scroll
+    }()
+    
+    private lazy var shareButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "share_button"), for: .normal)
+        button.addTarget(self, action: #selector(didTapShareButton), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private lazy var backButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "nav_back_button_white"), for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
    // MARK: - Lyfecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        scrollView.minimumZoomScale = 0.1
-        scrollView.maximumZoomScale = 1.25
-
-        guard let image else { return }
+        
+        setScrollView()
+        setImageView()
+        setBackButton()
+        setShareButton()
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(didDoubleTapImage))
+        doubleTapGesture.numberOfTapsRequired = 2
+        imageView.addGestureRecognizer(doubleTapGesture)
+        imageView.isUserInteractionEnabled = true
+        guard let image = image else { return }
         imageView.image = image
         imageView.frame.size = image.size
         rescaleAndCenterImageInScrollView(image: image)
     }
 
-    // MARK: - IBAction
-    @IBAction private func didTapBackButton() {
-        dismiss(animated: true, completion: nil)
-    }
-
-    @IBAction private func didTapShareButton(_ sender: UIButton) {
-        guard let image else { return }
-        let share = UIActivityViewController(
-            activityItems: [image],
-            applicationActivities: nil
-        )
-        present(share, animated: true, completion: nil)
-    }
-
-
     // MARK: - Methods
-    private func rescaleAndCenterImageInScrollView(image: UIImage) {
-        let minZoomScale = scrollView.minimumZoomScale
-        let maxZoomScale = scrollView.maximumZoomScale
+    private func setImageView() {
+        scrollView.addSubview(imageView)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: view.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+    
+    private func setScrollView() {
+        view.addSubview(scrollView)
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
 
-        imageView.image = image
-        view.layoutIfNeeded()
+    private func setShareButton() {
+        view.addSubview(shareButton)
+        NSLayoutConstraint.activate([
+        shareButton.widthAnchor.constraint(equalToConstant: 50),
+        shareButton.heightAnchor.constraint(equalToConstant: 50),
+        shareButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
+        shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
 
-        let visibleRectSize = scrollView.bounds.size
-        let imageSize = image.size
-        let hScale = visibleRectSize.width / imageSize.width
-        let vScale = visibleRectSize.height / imageSize.height
-        let scale = min(maxZoomScale, max(minZoomScale, min(hScale, vScale)))
-        initialZoomScale = scale
-        scrollView.setZoomScale(scale, animated: false)
-        scrollView.layoutIfNeeded()
-        centerImageIfNeeded()
+    private func setBackButton() {
+        view.addSubview(backButton)
+        NSLayoutConstraint.activate([
+            backButton.widthAnchor.constraint(equalToConstant: 44),
+            backButton.heightAnchor.constraint(equalToConstant: 44),
+            backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 9),
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 11)
+        ])
     }
 
     private func centerImageIfNeeded() {
@@ -82,25 +120,42 @@ final class SingleImageViewController: UIViewController {
         scrollView.contentInset = UIEdgeInsets(top: y, left: x, bottom: y, right: x)
     }
 
-    private func scrollViewConstraints() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.topAnchor
-            .constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-        scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        scrollView.leadingAnchor
-            .constraint(equalTo: view.leadingAnchor).isActive = true
-        scrollView.trailingAnchor
-            .constraint(equalTo: view.trailingAnchor).isActive = true
+    private func rescaleAndCenterImageInScrollView(image: UIImage) {
+        let visibleRectSize = scrollView.bounds.size
+        let imageSize = image.size
+        let hScale = visibleRectSize.width / imageSize.width
+        let vScale = visibleRectSize.height / imageSize.height
+        let scale = min(hScale, vScale)
+        if scale > 0 {
+            scrollView.setZoomScale(scale, animated: false)
+        }
+        scrollView.layoutIfNeeded()
+        centerImageIfNeeded()
     }
-
-    private func shareButtonSize() {
-        shareButton.frame.size = CGSize(width: 50, height: 50)
+    
+    private func updateImage(_ image: UIImage) {
+        imageView.image = image
+        rescaleAndCenterImageInScrollView(image: image)
     }
 
     @objc
     private func didDoubleTapImage() {
-        scrollView.setZoomScale(initialZoomScale, animated: true)
+        scrollView.setZoomScale(1.0, animated: true)
         centerImageIfNeeded()
+    }
+    
+    @objc
+    private func didTapBackButton() {
+        navigationController?.popViewController(animated: true)
+    }
+
+    @objc
+    private func didTapShareButton(_ sender: Any) {
+        guard let image else { return }
+        let share = UIActivityViewController(
+            activityItems: [image],
+            applicationActivities: nil)
+        present(share, animated: true, completion: nil)
     }
 }
 
@@ -120,5 +175,11 @@ extension SingleImageViewController: UIScrollViewDelegate {
         atScale scale: CGFloat
     ) {
         centerImageIfNeeded()
+    }
+}
+
+extension SingleImageViewController: UIGestureRecognizerDelegate {
+    func gustureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }
