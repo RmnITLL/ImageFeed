@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Kingfisher
 
 final class ProfileImageService {
     // MARK: - Properties

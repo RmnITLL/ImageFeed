@@ -14,7 +14,7 @@ final class AuthViewController: UIViewController {
     weak var delegate: AuthViewControllerDelegate?
     
     //MARK: - Lazy Properties
-    private lazy var errorAlert = AlertPresenter(viewController: self)
+    private lazy var errorAlertPresenter = AlertPresenter(viewController: self)
     
     private lazy var authImageLogo: UIImageView = {
         let authImageLogo = UIImageView(image: UIImage(named: "auth_screen_logo"))
@@ -96,7 +96,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
                                             message: "Не удалось войти в систему",
                                             buttonText: "OK",
                                             completion: nil)
-                errorAlert.showAlert(with: alertModel)
+                errorAlertPresenter.showAlert(with: alertModel)
             }
             UIBlockingProgressHUD.dismiss()
         }
