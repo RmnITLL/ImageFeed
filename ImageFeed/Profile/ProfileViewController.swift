@@ -8,7 +8,7 @@
 import UIKit
 import Kingfisher
 
-final class ProfileViewController: UIViewController {
+final class ProfileViewController: UIViewController, ProfileViewProtocol {
     // MARK: - Properties
     private lazy var avatarImageView: UIImageView = {
         let avatarImage = UIImage(named: "avatar")
@@ -55,15 +55,8 @@ final class ProfileViewController: UIViewController {
         return logoutButton
     }()
     
-    private let profileService = ProfileService.shared
-    private var profileImageServiceObserver: NSObjectProtocol?
-    
-    // MARK: - Deinit
-    deinit {
-        if let observer = profileImageServiceObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
+    private lazy var presenter = AttendProfile(view: self)
+    private lazy var errorAlert = AlertPresenter(viewController: self)
     
     // MARK: - Life cycle
     override func viewDidLoad() {
@@ -73,9 +66,7 @@ final class ProfileViewController: UIViewController {
         setLoginNameLabel()
         setDescriptionLabel()
         setLogoutButton()
-        updateProfileDetails()
-        addProfileImageObserver()
-        updateAvatar()
+        presenter.viewDidLoad()
     }
     
     // MARK: - Override methods
@@ -142,36 +133,40 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
-    private func updateProfileDetails() {
-        if let profile = profileService.profile {
-            print("Profile loaded: \(profile.name), \(profile.loginName), \(String(describing: profile.bio))")
-            nameLabel.text = profile.name
-            loginNameLabel.text = profile.loginName
-            descriptionLabel.text = profile.bio
-            updateAvatar()
-        } else {
-            print("Профиль не загружен")
+     func updateProfileDetails(name: String, login: String, bio: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            nameLabel.text = name
+            loginNameLabel.text = login
+            descriptionLabel.text = bio
         }
     }
     
-    private func updateAvatar(){
-        guard let profileImageURL = ProfileImageService.shared.avatarURL, let updateUrl = URL(string: profileImageURL) else {
-            print("Ошибка: avatarURL отсутствует или невалидный")
-            return
-        }
-        print("Обновляем аватар: \(updateUrl.absoluteString)")
-        avatarImageView.kf.setImage(with: updateUrl, placeholder: UIImage(named: "PlaceholderAvatar"))
+    func updateAvatar(with url: URL) {
+        avatarImageView.kf.setImage(with: url, placeholder: UIImage(named: "PlaceholderAvatar"))
     }
     
-    private func addProfileImageObserver(){
-        profileImageServiceObserver = NotificationCenter.default.addObserver(
-            forName: ProfileImageService.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.updateAvatar()
+    func resetToDefaultProfileData() {
+        let cleanURL: URL? = nil
+        self.avatarImageView.kf.setImage(with: cleanURL, placeholder: UIImage(named: "PlaceholderAvatar"))
+        
+        DispatchQueue.main.async {
+            self.avatarImageView.image = UIImage(named: "Photo")
+            self.nameLabel.text = "Екатерина Новикова"
+            self.loginNameLabel.text = "@ekaterina_nov"
+            self.descriptionLabel.text = "Hello, world!"
         }
     }
     
-    @objc private func didTapLogoutButton() {}
+    @objc private func didTapLogoutButton() {
+        let alertmodel = AlertModel(title: "Пока, пока!",
+                                    message: "Уверены что хотите выйти?",
+                                    buttonText: "Нет",
+                                    completion: nil,
+                                    secondButtonText: "Да",
+                                    secondButtonCompletion: {
+            self.presenter.logoutTapped()
+        })
+        errorAlert.showAlert(with: alertmodel)
+    }
 }

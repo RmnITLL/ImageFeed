@@ -72,7 +72,8 @@ final class SplashViewController: UIViewController {
             print("Token was not found, going to the AuthViewController")
              let authViewController = AuthViewController()
                 authViewController.delegate = self
-                navigationController?.pushViewController(authViewController, animated: true)
+            authViewController.modalPresentationStyle = .fullScreen
+            present(authViewController, animated: true)
         }
     }
     
@@ -92,7 +93,12 @@ final class SplashViewController: UIViewController {
                 self.switchToBarController()
             case .failure(let error):
                 print("ERROR: Error when uploading profile \(error)")
-                let alertModel = AlertModel(title: "ERROR", message: "Couldn't upload profile", buttonText: "OK", completion: nil)
+                let alertModel = AlertModel(title: "ERROR",
+                                            message: "Couldn't upload profile",
+                                            buttonText: "OK",
+                                            completion: nil,
+                                            secondButtonText: nil,
+                                            secondButtonCompletion: nil)
                 showErrorAlert.showAlert(with: alertModel)
             }
         }

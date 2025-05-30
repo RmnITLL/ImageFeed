@@ -1,0 +1,15 @@
+//
+//  WebViewViewControllerProtocol.swift
+//  ImageFeed
+//
+//  Created by R Kolos on 23.05.2025.
+//
+
+import UIKit
+
+protocol WebViewViewControllerProtocol: AnyObject {
+    var presenter: WebViewPresenterProtocol? { get set }
+    func load(request: URLRequest)
+    func setProgressValue(_ newValue: Float)
+    func setProgressHidden(_ isHidden: Bool)
+}

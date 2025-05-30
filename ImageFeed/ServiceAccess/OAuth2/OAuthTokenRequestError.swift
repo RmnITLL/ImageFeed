@@ -21,3 +21,8 @@ enum NetworkError: Error {
     case missingToken
     case requestFailed
 }
+
+enum ImagesListServiceError: Error {
+    case missingToken
+    case urlRequestError(Error)
+}

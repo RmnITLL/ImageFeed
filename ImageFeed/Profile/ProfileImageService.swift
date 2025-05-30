@@ -6,44 +6,41 @@
 //
 
 import Foundation
+import Kingfisher
 
 final class ProfileImageService {
     // MARK: - Properties
     static let shared = ProfileImageService()
-    private init() {}
-    
-    static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
-    
     private let oAuth2TokenStorage = OAuth2TokenStorage.storage
     private let urlSession = URLSession.shared
     private(set) var avatarURL: String?
     private var task: URLSessionTask?
+    private let authConfiguration = Authentication.standard
     private var isFetching = false
+    static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
+    private init() {}
     
     // MARK: - Private Methods
     func makeProfileImageRequest(username: String, token: String) -> Result<URLRequest, OAuthTokenRequestError> {
         guard let url = URL(string: "users/\(username)", relativeTo: Constants.defaultBaseURL) else {
-            print("Ошибка: Неверный URL ProfileImageRequest")
+            print("ERROR: Incorrect URL ProfileImageRequest")
             return.failure(.invalidBaseURL)
         }
-
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
         return .success(request)
     }
     
     func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, NetworkError>) -> Void) {
         guard !isFetching else {
-            print("Запрос уже выполняется")
             return
         }
         
         isFetching = true
         
         guard let token = oAuth2TokenStorage.token else {
-            print("Ошибка: Токен отсутствует")
+            print("ERROR: The token is missing")
             completion(.failure(.missingToken))
             isFetching = false
             return
@@ -51,7 +48,7 @@ final class ProfileImageService {
         
         switch makeProfileImageRequest(username: username, token: token){
         case .failure(let error):
-            print("Ошибка создания запроса makeProfileImageRequest: \(error)")
+            print("ERROR: Error creating the makeProfileImageRequest request: \(error)")
             completion(.failure(.urlRequestError(error)))
             isFetching = false
             
@@ -64,18 +61,15 @@ final class ProfileImageService {
                     print("JSON response: \(String(describing: result))")
                     switch result {
                     case .success(let userResult):
-                        print("Успешный ответ от API: \(userResult)")
-                        
+                        print("Successful response from the API: \(userResult)")
                         print("JSON profileImage: \(String(describing: userResult.profileImage))")
                         
                         guard let profileImageURL = userResult.profileImage?.small else {
-                            print("Ошибка: profileImage отсутствует в ответе API")
+                            print("Ошибка: profileImage missing in the response API")
                             completion(.failure(.invalidResponseData))
                             return
                         }
-                        
-                        print("Полученный URL аватарки: \(profileImageURL)")
-                        
+                        print("The received avatar URL: \(profileImageURL)")
                         self.avatarURL = profileImageURL
                         
                         NotificationCenter.default.post(
@@ -88,7 +82,7 @@ final class ProfileImageService {
                         completion(.success(profileImageURL))
                         
                     case .failure(let error):
-                        print("Ошибка сети makeProfileImageRequest: \(error.localizedDescription)")
+                        print("ERROR: Network error makeProfileImageRequest: \(error.localizedDescription)")
                         completion(.failure(.urlRequestError(error)))
                     }
                 }
