@@ -6,13 +6,15 @@
 //
 
 import UIKit
+import ProgressHUD
+import Kingfisher
 
 final class SingleImageViewController: UIViewController {
     // MARK: - Properties
-    var image: UIImage? {
+    var image: WebImage? {
         didSet {
             guard isViewLoaded, let image = image else { return }
-            updateImage(image)
+            updateImage(from: image.largeImageURL)
         }
     }
     
@@ -26,7 +28,6 @@ final class SingleImageViewController: UIViewController {
     
     private lazy var scrollView: UIScrollView = {
         let scroll = UIScrollView()
-
         scroll.delegate = self
         scroll.showsVerticalScrollIndicator = false
         scroll.showsHorizontalScrollIndicator = false
@@ -52,6 +53,8 @@ final class SingleImageViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    private lazy var errorAlert = AlertPresenter(viewController: self)
 
    // MARK: - Lyfecycle
     override func viewDidLoad() {
@@ -61,14 +64,17 @@ final class SingleImageViewController: UIViewController {
         setImageView()
         setBackButton()
         setShareButton()
+        
         let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(didDoubleTapImage))
+        
         doubleTapGesture.numberOfTapsRequired = 2
+        
         imageView.addGestureRecognizer(doubleTapGesture)
         imageView.isUserInteractionEnabled = true
+        
         guard let image = image else { return }
-        imageView.image = image
-        imageView.frame.size = image.size
-        rescaleAndCenterImageInScrollView(image: image)
+        
+        updateImage(from: image.largeImageURL)
     }
 
     // MARK: - Methods
@@ -133,9 +139,33 @@ final class SingleImageViewController: UIViewController {
         centerImageIfNeeded()
     }
     
-    private func updateImage(_ image: UIImage) {
-        imageView.image = image
-        rescaleAndCenterImageInScrollView(image: image)
+    private func updateImage(from url: URL) {
+        UIBlockingProgressHUD.show()
+        
+        let placeholderImage = UIImage(named: "placeholder")
+        imageView.contentMode = .center
+        
+        imageView.kf.setImage(with: url, placeholder: placeholderImage) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let imageResult):
+                self.imageView.contentMode = .scaleAspectFill
+                self.imageView.image = imageResult.image
+                self.rescaleAndCenterImageInScrollView(image: imageResult.image)
+            case .failure(let error):
+                let alertModel = AlertModel(title: "Ошибка",
+                                            message: "Не удалось загрузить изображение",
+                                            buttonText: "Ok",
+                                            completion: { self.navigationController?.popViewController(animated: true)},
+                                            secondButtonText: nil,
+                                            secondButtonCompletion: nil)
+                
+                errorAlert.showAlert(with: alertModel)
+                print("ERROR: Image upload error: \(error)")
+            }
+        }
     }
 
     @objc
@@ -155,7 +185,7 @@ final class SingleImageViewController: UIViewController {
         let share = UIActivityViewController(
             activityItems: [image],
             applicationActivities: nil)
-        present(share, animated: true, completion: nil)
+        present(share, animated: true)
     }
 }
 
@@ -179,7 +209,7 @@ extension SingleImageViewController: UIScrollViewDelegate {
 }
 
 extension SingleImageViewController: UIGestureRecognizerDelegate {
-    func gustureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    private func gustureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         return navigationController?.viewControllers.count ?? 0 > 1
     }
 }

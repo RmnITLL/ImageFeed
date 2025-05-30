@@ -6,10 +6,11 @@
 //
 
 import UIKit
+import Kingfisher
 
-final class ImagesListCell: UITableViewCell {
+final class ImagesListCell: UITableViewCell, cellImageProtocol {
     // MARK: - Properties
-    private lazy var cellImage: UIImageView = {
+    private(set) lazy var cellImage: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 16
@@ -18,25 +19,37 @@ final class ImagesListCell: UITableViewCell {
         return imageView
     }()
 
-    private lazy var likeButton: UIButton = {
-        let likeButton = UIButton()
+    private(set) lazy var likeButton: UIButton = {
+        let likeButton = UIButton(type: .custom)
+        likeButton.isHidden = true
+        likeButton.addTarget(nil, action: #selector(didTapLikeButton), for: .touchUpInside)
+        likeButton.accessibilityIdentifier = "LikeButton"
         likeButton.translatesAutoresizingMaskIntoConstraints = false
         return likeButton
     }()
     
-    private lazy var dateLabel: UILabel = {
+    private(set) lazy var dateLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 13, weight: .regular)
         label.textColor = .ypWhite
+        label.isHidden = true
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     static let reuseIdentifier = "ImagesListCell"
+    var imageURL: URL?
+    weak var delegate: CellLikeImageDelegate?
     
     // MARK: - Override Methods
     override func layoutSubviews() {
         super.layoutSubviews()
+    }
+    
+    override func prepareForReuse(){
+        super.prepareForReuse()
+        cellImage.kf.cancelDownloadTask()
+        cellImage.image = nil
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -77,9 +90,44 @@ final class ImagesListCell: UITableViewCell {
         contentView.backgroundColor = .ypBlack
     }
     
-    func configureCellWithImage(image: UIImage, likeButtonImage: UIImage?, date: String) {
-         cellImage.image = image
-         likeButton.setImage(likeButtonImage, for: .normal)
-         dateLabel.text = date
-     }
+    func imageSetURL(from url: URL) {
+        cellImage.kf.cancelDownloadTask()
+        loadImage(from: url)
+    }
+    
+    private func loadImage(from url: URL) {
+        
+        cellImage.contentMode = .center
+        likeButton.isHidden = true
+        dateLabel.isHidden = true
+        
+        let resource = KF.ImageResource(downloadURL: url, cacheKey: url.absoluteString)
+        
+        cellImage.kf.setImage(with: resource,
+                              placeholder: UIImage(named: "placeholder"),
+                              options: [.transition(.fade(0.3))]
+        ) { result in
+            switch result {
+            case .success(let imageResult):
+                self.likeButton.isHidden = false
+                self.dateLabel.isHidden = false
+                self.cellImage.contentMode = .scaleAspectFill
+                self.cellImage.image = imageResult.image
+            case .failure(_):
+                self.cellImage.contentMode = .center
+                self.likeButton.isHidden = true
+                self.dateLabel.isHidden = true
+            }
+        }
+        cellImage.kf.indicatorType = .activity
+    }
+    
+    func setIsLiked(_ isLiked: Bool) {
+        let likeImage = isLiked ? UIImage(named: "like_button_on") : UIImage(named: "like_button_off")
+        likeButton.setImage(likeImage, for: .normal)
+    }
+    
+    @objc private func didTapLikeButton() {
+        delegate?.cellImageLikeDidTaped(self)
+    }
 }

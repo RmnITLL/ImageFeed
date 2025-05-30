@@ -71,6 +71,13 @@ final class AuthViewController: UIViewController {
     
     @objc private func didTapLoginButton() {
         let webController = WebViewViewController()
+        
+        let helpAuth = HelpAuthication()
+        let presentWebView = WebViewPresenter(authHelper: helpAuth)
+        
+        webController.presenter = presentWebView
+        presentWebView.view = webController
+        
         webController.delegate = self
         let navigationController = UINavigationController(rootViewController: webController)
         navigationController.modalPresentationStyle = .fullScreen
@@ -91,11 +98,14 @@ extension AuthViewController: WebViewViewControllerDelegate {
             case .success(let token):
                 OAuth2TokenStorage.storage.token = token
                 self.delegate?.didAuthenticate(self)
-            case .failure(let error): print("Ошибка получения токена: \(error)")
+            case .failure(let error):
+                print("Ошибка получения токена: \(error)")
                 let alertModel = AlertModel(title: "Что-то пошло не так (",
                                             message: "Не удалось войти в систему",
                                             buttonText: "OK",
-                                            completion: nil)
+                                            completion: nil,
+                                            secondButtonText: nil,
+                                            secondButtonCompletion: nil)
                 errorAlertPresenter.showAlert(with: alertModel)
             }
             UIBlockingProgressHUD.dismiss()

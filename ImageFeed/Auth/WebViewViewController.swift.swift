@@ -9,10 +9,13 @@ import UIKit
 @preconcurrency import WebKit
 
 
-final class WebViewViewController: UIViewController, WKUIDelegate {
+final class WebViewViewController: UIViewController, WKUIDelegate, WebViewViewControllerProtocol {
+    
     // MARK: - Properties
     weak var delegate: WebViewViewControllerDelegate?
+    var presenter: WebViewPresenterProtocol? = WebViewPresenter(authHelper: HelpAuthication())
     private var estimatedProgressObservaton: NSKeyValueObservation?
+    var webViewPresent: WebViewPresenterProtocol? = WebViewPresenter(authHelper: HelpAuthication())
     
     private lazy var webView: WKWebView = {
         let webView = WKWebView()
@@ -73,7 +76,7 @@ final class WebViewViewController: UIViewController, WKUIDelegate {
         estimatedProgressObservaton.invalidate()
     }
     
-    // MARK: - Private Method
+    // MARK: - Private Methods
     private func loadWebView() {
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
             print("ERROR: Error couldn't create URL Components from string \(WebViewConstants.unsplashAuthorizeURLString)")
@@ -130,6 +133,23 @@ final class WebViewViewController: UIViewController, WKUIDelegate {
         ])
     }
     
+    func load(request: URLRequest) {
+        webView.load(request)
+    }
+    
+    
+    func setProgressValue(_ newValue: Float) {
+        progressView.progress = newValue
+    }
+    
+    func setProgressHidden(_ isHidden: Bool) {
+        progressView.isHidden = isHidden
+    }
+    
+    @objc private func didTapBackAuthVCButton(){
+        delegate?.webViewViewControllerDidCancel(self)
+    }
+    
     @objc
     private func didTapBackButton() {
         delegate?.webViewViewControllerDidCancel(self)
@@ -149,14 +169,8 @@ extension WebViewViewController: WKNavigationDelegate {
     }
     
     private func fetchCode(from navigationAction: WKNavigationAction) -> String? {
-        if
-            let url = navigationAction.request.url,
-            let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
-            let items = urlComponents.queryItems,
-            let codeItem = items.first(where: { $0.name == "code" })
-        {
-            return codeItem.value
+        if let url = navigationAction.request.url {
+            return presenter?.code(from: url)
         } else {
             return nil
         }

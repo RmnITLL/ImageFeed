@@ -25,6 +25,13 @@ final class AlertPresenter: AlertPresenterProtocol {
         }
         
         alert.addAction(action)
+        
+        if model.hasSecondButton {
+            let actionTwo = UIAlertAction(title: model.secondButtonText, style: .cancel) { _ in
+                model.secondButtonCompletion?()
+            }
+            alert.addAction(actionTwo)
+        }
         viewController?.present(alert, animated: true, completion: nil)
     }
 }
