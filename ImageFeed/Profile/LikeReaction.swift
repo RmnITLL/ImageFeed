@@ -8,5 +8,5 @@
 import Foundation
 
 struct LikeReaction: Codable {
-    let photo: GeneratWebImage
+    let photo: ImageResponseResult
 }

@@ -8,7 +8,7 @@
 import UIKit
 import Kingfisher
 
-final class ImagesListCell: UITableViewCell, cellImageProtocol {
+final class ImagesListCell: UITableViewCell, CellImageProtocol {
     // MARK: - Properties
     private(set) lazy var cellImage: UIImageView = {
         let imageView = UIImageView()

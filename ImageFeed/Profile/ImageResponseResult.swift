@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GeneratWebImage: Codable {
+struct ImageResponseResult: Codable {
     let id: String
     let createdAt: String
     let width: Int

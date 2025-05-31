@@ -7,7 +7,7 @@
 
 import UIKit
 
-class AttendProfile {
+final class AttendProfile {
     private weak var view: ProfileViewProtocol?
     private let profileService = ProfileService.shared
     private let profileImageService = ProfileImageService.shared
@@ -55,7 +55,7 @@ class AttendProfile {
     
     func logoutTapped() {
            view?.resetToDefaultProfileData()
-           logoutProfile.shared.logout()
+           ProfileLogout.shared.logout()
            navigateToSplash()
        }
 

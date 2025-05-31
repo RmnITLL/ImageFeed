@@ -18,7 +18,7 @@ struct WebImage: Codable {
 }
 
 extension WebImage {
-    static func makeArray(from photoResults: [GeneratWebImage]) -> [WebImage] {
+    static func makeArray(from photoResults: [ImageResponseResult]) -> [WebImage] {
         return photoResults.map { result in
             WebImage(
                 id: result.id,

@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class serviceListImages: serviceImageProtocol {
+final class ServiceListImages: ServiceImageProtocol {
     //MARK: - Private variables
     private(set) var images: [WebImage] = []
     static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
@@ -18,7 +18,7 @@ final class serviceListImages: serviceImageProtocol {
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?
     
-    static let shared = serviceListImages()
+    static let shared = ServiceListImages()
     private init(){}
     
     //MARK: -  Methods
@@ -62,7 +62,7 @@ final class serviceListImages: serviceImageProtocol {
             isFetching = false
             completion?(.failure(error))
         case .success(let request):
-            let task = urlSession.objectTask(for: request){ [weak self ] (result: Result<[GeneratWebImage], Error>) in
+            let task = urlSession.objectTask(for: request){ [weak self ] (result: Result<[ImageResponseResult], Error>) in
                 guard let self = self else { return }
                 self.isFetching = false
                 switch result {
@@ -149,7 +149,7 @@ final class serviceListImages: serviceImageProtocol {
        }
     
      func sentNotification() {
-        NotificationCenter.default.post(name: serviceListImages.didChangeNotification, object: self)
+        NotificationCenter.default.post(name: ServiceListImages.didChangeNotification, object: self)
     }
 }
 

@@ -9,7 +9,7 @@ import UIKit
 
 final class ImagesListPresenter: ImagePresenterProtocol {
     // MARK: - Properties
-    private let imagesListService: serviceImageProtocol
+    private let imagesListService: ServiceImageProtocol
     private var imageListServiceObserver: Any?
     weak var view: ImagesViewControllerProtocol?
     var images: [WebImage] = []
@@ -27,7 +27,7 @@ final class ImagesListPresenter: ImagePresenterProtocol {
         return formatter
     }()
     
-    init(imagesListService: serviceImageProtocol = serviceListImages.shared) {
+    init(imagesListService: ServiceImageProtocol = ServiceListImages.shared) {
         self.imagesListService = imagesListService
         setupObserver()
     }
@@ -110,7 +110,7 @@ final class ImagesListPresenter: ImagePresenterProtocol {
     
     private func setupObserver() {
         imageListServiceObserver = NotificationCenter.default.addObserver(
-            forName: serviceListImages.didChangeNotification,
+            forName: ServiceListImages.didChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in

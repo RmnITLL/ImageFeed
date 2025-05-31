@@ -36,7 +36,7 @@ final class ImagesListViewController: UIViewController, ImagesViewControllerProt
         view.contentMode = .scaleToFill
         setTableView()
         
-        presenter = ImagesListPresenter(imagesListService: serviceListImages.shared)
+        presenter = ImagesListPresenter(imagesListService: ServiceListImages.shared)
         presenter.view = self
         presenter.viewDidLoad()
     }

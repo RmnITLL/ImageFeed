@@ -7,6 +7,6 @@
 
 import UIKit
 
-protocol cellImageProtocol: AnyObject {
+protocol CellImageProtocol: AnyObject {
     func imageSetURL(from url: URL)
 }

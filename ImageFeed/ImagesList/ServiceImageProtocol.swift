@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol serviceImageProtocol {
+protocol ServiceImageProtocol {
     var images: [WebImage] { get }
     func likeImagesChenge(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, NetworkError>) -> Void)
     func selectImagesAnotherCell(completion: ((Result<[WebImage], Error>) -> Void)?)
